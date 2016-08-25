@@ -2,18 +2,21 @@ package setdeadline
 
 import (
 	"net"
+	"sync/atomic"
 	"time"
 )
 
 const (
 	SetDeadLineEach int = iota
 	SetDeadLineBoth
-	SetDeadLineNon
+	SetDeadLineLive
+	SetDeadLineNone
 )
 
 type EchoClient struct {
-	c   net.Conn
-	set int
+	c        net.Conn
+	set      int
+	lastLive int64
 }
 
 func Dial(addr string, set int) (*EchoClient, error) {
@@ -24,6 +27,9 @@ func Dial(addr string, set int) (*EchoClient, error) {
 	ret := &EchoClient{
 		set: set,
 		c:   c,
+	}
+	if set == SetDeadLineLive {
+		go ret.LiveCheck()
 	}
 	return ret, nil
 }
@@ -45,6 +51,8 @@ func (c *EchoClient) Do(n int) error {
 			if err := c.c.SetDeadline(time.Now().Add(time.Second)); err != nil {
 				return err
 			}
+		case SetDeadLineLive:
+			atomic.StoreInt64(&c.lastLive, time.Now().Unix())
 		}
 		if _, err := c.c.Write(out); err != nil {
 			return err
@@ -59,4 +67,16 @@ func (c *EchoClient) Do(n int) error {
 		}
 	}
 	return nil
+}
+
+func (c *EchoClient) LiveCheck() {
+	atomic.StoreInt64(&c.lastLive, time.Now().Unix())
+	for {
+		time.Sleep(time.Second / 3 * 2)
+		lastLive := atomic.LoadInt64(&c.lastLive)
+		if time.Unix(lastLive, 0).Add(time.Second).Before(time.Now()) {
+			c.Close()
+			return
+		}
+	}
 }
