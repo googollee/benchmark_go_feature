@@ -47,6 +47,9 @@ func (c *EchoClient) Do(n int) error {
 			if err := c.c.SetWriteDeadline(time.Now().Add(time.Second)); err != nil {
 				return err
 			}
+			if err := c.c.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
+				return err
+			}
 		case SetDeadLineBoth:
 			if err := c.c.SetDeadline(time.Now().Add(time.Second)); err != nil {
 				return err
@@ -56,11 +59,6 @@ func (c *EchoClient) Do(n int) error {
 		}
 		if _, err := c.c.Write(out); err != nil {
 			return err
-		}
-		if c.set == SetDeadLineEach {
-			if err := c.c.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
-				return err
-			}
 		}
 		if _, err := c.c.Read(in); err != nil {
 			return err

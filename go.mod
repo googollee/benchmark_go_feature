@@ -1,0 +1,1 @@
+module benchmark_go_feature
