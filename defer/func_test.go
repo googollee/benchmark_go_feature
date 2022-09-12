@@ -2,9 +2,15 @@ package deferbench
 
 import "testing"
 
-func BenchmarkDefer1(b *testing.B) {
+func BenchmarkLoopDefer1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		useDefer(1)
+		useLoopDefer(1)
+	}
+}
+
+func BenchmarkFuncDefer1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		useFuncDefer(1)
 	}
 }
 
@@ -14,9 +20,15 @@ func BenchmarkNormal1(b *testing.B) {
 	}
 }
 
-func BenchmarkDefer4(b *testing.B) {
+func BenchmarkLoopDefer4(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		useDefer(4)
+		useLoopDefer(4)
+	}
+}
+
+func BenchmarkFuncDefer4(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		useFuncDefer(4)
 	}
 }
 
